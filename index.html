@@ -2,597 +2,95 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Greed TV — Live Streams</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>GREED TV</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Bebas Neue',sans-serif}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+/* ── Stream containers ── */
+#viewer{display:none;width:100vw;height:100vh}
+#viewer iframe{border:none;display:block}
 
-  :root {
-    --gold: #c9a84c;
-    --gold-dim: #8a6e2f;
-    --black: #000000;
-    --dark: #0a0a0a;
-    --panel: #111111;
-    --border: #1e1e1e;
-    --text: #ffffff;
-    --text-muted: #555555;
-  }
+/* 2 streams: side by side */
+#viewer.two{display:flex;flex-direction:row}
+#viewer.two iframe{width:50%;height:100%}
 
-  body {
-    background: var(--black);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+/* 3 streams: 2 top + 1 bottom */
+#viewer.three{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:60vh 40vh}
+#viewer.three iframe:nth-child(3){grid-column:1/3}
 
-  /* ── Header ── */
-  #header {
-    background: var(--dark);
-    border-bottom: 2px solid var(--gold);
-    padding: 0 20px;
-    height: 54px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-  }
-
-  #logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 28px;
-    letter-spacing: 4px;
-    color: var(--gold);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  #logo span {
-    color: #fff;
-    opacity: 0.5;
-    font-size: 16px;
-    letter-spacing: 2px;
-  }
-
-  #header-meta {
-    display: flex;
-    gap: 24px;
-    align-items: center;
-  }
-
-  .meta-item {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 16px;
-    letter-spacing: 2px;
-    color: var(--text-muted);
-  }
-
-  .meta-item.active {
-    color: var(--gold);
-  }
-
-  /* ── Stream area ── */
-  #streams {
-    display: flex;
-    flex: 1;
-    gap: 2px;
-    background: #050505;
-    overflow: hidden;
-  }
-
-  .stream-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-
-  .stream-label {
-    background: var(--panel);
-    border-bottom: 2px solid var(--gold);
-    padding: 7px 14px;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 18px;
-    letter-spacing: 2px;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-  }
-
-  .label-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .live-badge {
-    background: #e53935;
-    color: #fff;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 11px;
-    letter-spacing: 2px;
-    padding: 2px 6px;
-    animation: pulse-badge 1.5s infinite;
-  }
-
-  @keyframes pulse-badge {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
-
-  .twitch-link {
-    font-size: 11px;
-    color: var(--gold-dim);
-    text-decoration: none;
-    letter-spacing: 1px;
-  }
-
-  .twitch-link:hover { color: var(--gold); }
-
-  .stream-frame {
-    flex: 1;
-    background: #000;
-    position: relative;
-  }
-
-  .stream-frame iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-    display: block;
-  }
-
-  .stream-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    color: var(--text-muted);
-  }
-
-  .stream-placeholder .icon { font-size: 40px; opacity: 0.25; }
-  .stream-placeholder p { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
-
-  /* ── Ticker ── */
-  #ticker {
-    background: var(--gold);
-    height: 30px;
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-
-  #ticker-label {
-    background: var(--black);
-    color: var(--gold);
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 13px;
-    letter-spacing: 3px;
-    padding: 0 16px;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    border-right: 1px solid #333;
-  }
-
-  #ticker-track {
-    overflow: hidden;
-    flex: 1;
-  }
-
-  #ticker-content {
-    display: inline-flex;
-    animation: scroll-ticker 50s linear infinite;
-    white-space: nowrap;
-  }
-
-  .ticker-item {
-    color: var(--black);
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 13px;
-    letter-spacing: 2px;
-    padding: 0 28px;
-  }
-
-  .ticker-sep {
-    color: rgba(0,0,0,0.35);
-    font-size: 13px;
-  }
-
-  @keyframes scroll-ticker {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
-  }
-
-  /* ── Setup modal ── */
-  #setup-modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.95);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-  }
-
-  #setup-box {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-top: 3px solid var(--gold);
-    padding: 40px;
-    width: 520px;
-    max-width: 92vw;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-
-  .modal-header {
-    margin-bottom: 28px;
-  }
-
-  .modal-header h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 36px;
-    letter-spacing: 4px;
-    color: var(--gold);
-    line-height: 1;
-  }
-
-  .modal-header p {
-    color: var(--text-muted);
-    font-size: 13px;
-    margin-top: 6px;
-  }
-
-  .section-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 14px;
-    letter-spacing: 3px;
-    color: var(--gold-dim);
-    margin-bottom: 14px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .field-group {
-    margin-bottom: 16px;
-  }
-
-  .field-group label {
-    display: block;
-    font-size: 11px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 7px;
-  }
-
-  .field-group input {
-    width: 100%;
-    background: var(--black);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    padding: 10px 12px;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-
-  .field-group input:focus { border-color: var(--gold); }
-  .field-group input::placeholder { color: #2a2a2a; }
-
-  .optional-note {
-    font-size: 11px;
-    color: var(--text-muted);
-    margin-bottom: 8px;
-  }
-
-  .stream-count-toggle {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-  }
-
-  .count-btn {
-    flex: 1;
-    background: var(--black);
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 16px;
-    letter-spacing: 2px;
-    padding: 10px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .count-btn.active {
-    border-color: var(--gold);
-    color: var(--gold);
-    background: rgba(201,168,76,0.08);
-  }
-
-  #stream3-field {
-    display: none;
-  }
-
-  .divider {
-    height: 1px;
-    background: var(--border);
-    margin: 20px 0;
-  }
-
-  .meta-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-  }
-
-  #launch-btn {
-    width: 100%;
-    background: var(--gold);
-    color: var(--black);
-    border: none;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 20px;
-    letter-spacing: 3px;
-    padding: 14px;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: background 0.15s;
-  }
-
-  #launch-btn:hover { background: #dab84e; }
+/* ── Setup form ── */
+#setup{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100vw;height:100vh;gap:16px}
+#setup input{width:260px;padding:10px 14px;font-size:16px;border:1px solid #333;border-radius:4px;background:#111;color:#fff;font-family:'Bebas Neue',sans-serif;letter-spacing:1px}
+#setup input::placeholder{color:#555}
+#setup button{width:260px;padding:12px;font-size:20px;letter-spacing:2px;border:none;border-radius:4px;background:#c9a84c;color:#000;font-family:'Bebas Neue',sans-serif;cursor:pointer}
+#setup button:hover{background:#d4b65c}
 </style>
 </head>
 <body>
 
-<div id="header">
-  <div id="logo">GREED TV <span>DYNASTY LEAGUE</span></div>
-  <div id="header-meta">
-    <div class="meta-item" id="week-display">LIVE</div>
-    <div class="meta-item active" id="matchup-display"></div>
-  </div>
+<div id="setup">
+  <input id="s1" type="text" placeholder="Stream 1">
+  <input id="s2" type="text" placeholder="Stream 2">
+  <input id="s3" type="text" placeholder="Stream 3 (optional)">
+  <button onclick="launch()">Launch</button>
 </div>
 
-<div id="streams" id="stream-container">
-  <div class="stream-wrapper" id="wrapper1">
-    <div class="stream-label">
-      <div class="label-left">
-        <div class="live-badge">LIVE</div>
-        <span id="label1">STREAM 1</span>
-      </div>
-      <a class="twitch-link" id="twitch-link1" href="#" target="_blank">TWITCH ↗</a>
-    </div>
-    <div class="stream-frame" id="frame1">
-      <div class="stream-placeholder">
-        <div class="icon">📺</div>
-        <p>No stream loaded</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="stream-wrapper" id="wrapper2">
-    <div class="stream-label">
-      <div class="label-left">
-        <div class="live-badge">LIVE</div>
-        <span id="label2">STREAM 2</span>
-      </div>
-      <a class="twitch-link" id="twitch-link2" href="#" target="_blank">TWITCH ↗</a>
-    </div>
-    <div class="stream-frame" id="frame2">
-      <div class="stream-placeholder">
-        <div class="icon">📺</div>
-        <p>No stream loaded</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="stream-wrapper" id="wrapper3" style="display:none;">
-    <div class="stream-label">
-      <div class="label-left">
-        <div class="live-badge">LIVE</div>
-        <span id="label3">STREAM 3</span>
-      </div>
-      <a class="twitch-link" id="twitch-link3" href="#" target="_blank">TWITCH ↗</a>
-    </div>
-    <div class="stream-frame" id="frame3">
-      <div class="stream-placeholder">
-        <div class="icon">📺</div>
-        <p>No stream loaded</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="ticker">
-  <div id="ticker-label">GREED TV</div>
-  <div id="ticker-track">
-    <div id="ticker-content"></div>
-  </div>
-</div>
-
-<!-- Setup Modal -->
-<div id="setup-modal">
-  <div id="setup-box">
-    <div class="modal-header">
-      <h1>GREED TV</h1>
-      <p>Load up to 3 live Twitch streams side by side</p>
-    </div>
-
-    <div class="section-title">NUMBER OF STREAMS</div>
-    <div class="stream-count-toggle">
-      <button class="count-btn active" data-count="2">2 STREAMS</button>
-      <button class="count-btn" data-count="3">3 STREAMS</button>
-    </div>
-
-    <div class="section-title">TWITCH USERNAMES</div>
-
-    <div class="field-group">
-      <label>Stream 1</label>
-      <input type="text" id="input1" placeholder="e.g. bamadynasty" autocomplete="off" />
-    </div>
-
-    <div class="field-group">
-      <label>Stream 2</label>
-      <input type="text" id="input2" placeholder="e.g. scardynasty" autocomplete="off" />
-    </div>
-
-    <div class="field-group" id="stream3-field">
-      <label>Stream 3</label>
-      <input type="text" id="input3" placeholder="e.g. floridadynasty" autocomplete="off" />
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="section-title">OPTIONAL INFO</div>
-    <div class="meta-row">
-      <div class="field-group">
-        <label>Matchup / Game</label>
-        <input type="text" id="input-matchup" placeholder="e.g. Bama vs Scar" />
-      </div>
-      <div class="field-group">
-        <label>Week</label>
-        <input type="text" id="input-week" placeholder="e.g. Week 8" />
-      </div>
-    </div>
-
-    <button id="launch-btn">LAUNCH GREED TV</button>
-  </div>
-</div>
+<div id="viewer"></div>
 
 <script>
-  const TICKER_MESSAGES = [
-    "GREED TV — YOUR DYNASTY LEAGUE NETWORK",
-    "SUBMIT YOUR PICKS WITH /submitbet",
-    "SIDE BETS OPEN — CHALLENGE YOUR OPPONENT",
-    "WEEKLY BETS AND 50 BETS NOW LIVE",
-    "GREED ISLAND SPORTSBOOK",
-    "MAY THE BEST TEAM WIN",
-    "CHECK THE LEADERBOARD AFTER THE GAME",
-    "GREED TV — YOUR DYNASTY LEAGUE NETWORK",
-    "SUBMIT YOUR PICKS WITH /submitbet",
-    "SIDE BETS OPEN — CHALLENGE YOUR OPPONENT",
-    "WEEKLY BETS AND 50 BETS NOW LIVE",
-    "GREED ISLAND SPORTSBOOK",
-    "MAY THE BEST TEAM WIN",
-    "CHECK THE LEADERBOARD AFTER THE GAME",
-  ];
+var PARENT = 'tlowe212.github.io';
 
-  let selectedCount = 2;
+function twitchSrc(ch) {
+  return 'https://player.twitch.tv/?channel=' + encodeURIComponent(ch) +
+    '&parent=' + PARENT + '&muted=true&autoplay=true';
+}
 
-  // Stream count toggle
-  document.querySelectorAll('.count-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.count-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      selectedCount = parseInt(btn.dataset.count);
-      document.getElementById('stream3-field').style.display =
-        selectedCount === 3 ? 'block' : 'none';
-    });
-  });
+function loadStreams(s1, s2, s3) {
+  var v = document.getElementById('viewer');
+  var setup = document.getElementById('setup');
+  v.innerHTML = '';
 
-  function buildTicker() {
-    const content = document.getElementById('ticker-content');
-    const items = [...TICKER_MESSAGES, ...TICKER_MESSAGES];
-    content.innerHTML = items.map(msg =>
-      `<span class="ticker-item">${msg}</span><span class="ticker-sep">◆</span>`
-    ).join('');
+  var streams = [s1, s2];
+  if (s3) streams.push(s3);
+
+  v.className = streams.length === 3 ? 'three' : 'two';
+
+  for (var i = 0; i < streams.length; i++) {
+    var f = document.createElement('iframe');
+    f.src = twitchSrc(streams[i]);
+    f.setAttribute('allowfullscreen', 'true');
+    f.allow = 'autoplay; fullscreen';
+    v.appendChild(f);
   }
 
-  function loadFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    const s1 = params.get('s1');
-    const s2 = params.get('s2');
-    const s3 = params.get('s3');
-    const matchup = params.get('matchup');
-    const week = params.get('week');
+  setup.style.display = 'none';
+  v.style.display = '';
+}
 
-    if (s1 && s2) {
-      launchStreams(s1, s2, s3 || '', matchup || '', week || '');
-      return true;
-    }
-    return false;
-  }
+function launch() {
+  var s1 = document.getElementById('s1').value.trim();
+  var s2 = document.getElementById('s2').value.trim();
+  var s3 = document.getElementById('s3').value.trim();
+  if (!s1 || !s2) return;
 
-  function launchStreams(s1, s2, s3, matchup, week) {
-    const hostname = window.location.hostname || 'localhost';
-    const count = s3 ? 3 : 2;
+  var params = '?s1=' + encodeURIComponent(s1) + '&s2=' + encodeURIComponent(s2);
+  if (s3) params += '&s3=' + encodeURIComponent(s3);
+  history.replaceState(null, '', location.pathname + params);
 
-    function loadStream(n, username) {
-      document.getElementById(`label${n}`).textContent = username.toUpperCase();
-      const link = document.getElementById(`twitch-link${n}`);
-      link.href = `https://twitch.tv/${username}`;
-      document.getElementById(`frame${n}`).innerHTML =
-        `<iframe src="https://player.twitch.tv/?channel=${username}&parent=${hostname}&muted=false" allowfullscreen></iframe>`;
-    }
+  loadStreams(s1, s2, s3);
+}
 
-    loadStream(1, s1);
-    loadStream(2, s2);
-
-    if (count === 3 && s3) {
-      document.getElementById('wrapper3').style.display = 'flex';
-      loadStream(3, s3);
-    } else {
-      document.getElementById('wrapper3').style.display = 'none';
-    }
-
-    if (matchup) {
-      document.getElementById('matchup-display').textContent = matchup.toUpperCase();
-    }
-    if (week) {
-      document.getElementById('week-display').textContent = week.toUpperCase();
-    }
-
-    document.getElementById('setup-modal').style.display = 'none';
-  }
-
-  document.getElementById('launch-btn').addEventListener('click', () => {
-    const s1 = document.getElementById('input1').value.trim();
-    const s2 = document.getElementById('input2').value.trim();
-    const s3 = selectedCount === 3 ? document.getElementById('input3').value.trim() : '';
-    const matchup = document.getElementById('input-matchup').value.trim();
-    const week = document.getElementById('input-week').value.trim();
-
-    if (!s1 || !s2) {
-      alert('Please enter at least 2 Twitch usernames.');
-      return;
-    }
-    if (selectedCount === 3 && !s3) {
-      alert('Please enter all 3 Twitch usernames or switch to 2 streams.');
-      return;
-    }
-
-    const params = new URLSearchParams({ s1, s2 });
-    if (s3) params.set('s3', s3);
-    if (matchup) params.set('matchup', matchup);
-    if (week) params.set('week', week);
-    window.history.replaceState({}, '', '?' + params.toString());
-
-    launchStreams(s1, s2, s3, matchup, week);
-  });
-
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('launch-btn').click();
-  });
-
-  buildTicker();
-  if (!loadFromURL()) {
-    document.getElementById('setup-modal').style.display = 'flex';
-  }
+// Auto-load from URL params
+(function() {
+  var p = new URLSearchParams(location.search);
+  var s1 = (p.get('s1') || '').trim();
+  var s2 = (p.get('s2') || '').trim();
+  var s3 = (p.get('s3') || '').trim();
+  if (s1 && s2) loadStreams(s1, s2, s3);
+})();
 </script>
 </body>
 </html>
